@@ -6,36 +6,32 @@ L298N rightMotor;
 
 void setup() {
   Serial.begin(115200);
+  Serial.setTimeout(500);
+  Serial.println("Serial port initialized");
   leftMotor.init(4, 2, 3);
   rightMotor.init(6, 7, 5);
+  Serial.println("PWM objects initialized");
 }
 
-uint8_t cntr = 255;
-uint8_t state = 0;
+long command;
+uint8_t pwmL, pwmR, dirL, dirR;
+
 void loop() {
-  // put your main code here, to run repeatedly:
-  Serial.println("Ping");
-  switch(state) {
-    case 0:
-      leftMotor.setPwm(cntr, L298N::FORWARD);
-      rightMotor.setPwm(cntr, L298N::FORWARD);
-      if (cntr == 0) {
-        state = 1;
-        cntr = 255;
-      }
-      break;
-    case 1:
-      leftMotor.setPwm(cntr, L298N::BACKWARD);
-      rightMotor.setPwm(cntr, L298N::BACKWARD);
-      if (cntr == 0) {
-        state = 0;
-        cntr = 255;
-      }
-      break;
-    default:
-      state = 0;
-      break;
-  }
-  cntr--;
-  delay(20);
+  command = Serial.parseInt();
+  
+  pwmL = command & 0xFF;
+  Serial.print("pwmL:");
+  Serial.println(pwmL);
+  pwmR = (command >> 8) & 0xFF;
+  Serial.print("pwmR:");
+  Serial.println(pwmR);
+  dirL = (command >> 16) & 0x01;
+  Serial.print("dirL:");
+  Serial.println(dirL);
+  dirR = (command >> 17) & 0x01;
+  Serial.print("dirR:");
+  Serial.println(dirR);
+
+  leftMotor.setPwm(pwmL, dirL);
+  rightMotor.setPwm(pwmR, dirR);
 }
